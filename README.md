@@ -36,6 +36,180 @@ The table below summarises the destinations available to the agent:
 ### Step 8: Test the Agent with Sample Tourist Profiles
 ●	Three realistic tourist profiles are used to test the agent across different interests and budgets: a budget heritage traveller, a mid-budget adventure seeker, and a family looking for a beach holiday.
 <img width="616" height="241" alt="image" src="https://github.com/user-attachments/assets/17613086-5b61-44f1-8d85-cbbae85cfc4b" />
+
+### Code
+
+import textwrap
+
+destinations = [
+
+    {"name": "Taj Mahal, Agra", "state": "Uttar Pradesh",
+     "category": "heritage", "cost_per_day": 2500, "season": "Oct-Mar",
+     "desc": "Iconic Mughal-era marble mausoleum, a UNESCO site."},
+
+    {"name": "Jaipur City", "state": "Rajasthan",
+     "category": "heritage", "cost_per_day": 2800, "season": "Oct-Mar",
+     "desc": "The Pink City – Amber Fort, Hawa Mahal, royal palaces."},
+
+    {"name": "Goa Beaches", "state": "Goa",
+     "category": "beach", "cost_per_day": 3500, "season": "Nov-Feb",
+     "desc": "Golden beaches, nightlife and water sports."},
+
+    {"name": "Andaman Islands", "state": "Andaman & Nicobar",
+     "category": "beach", "cost_per_day": 5500, "season": "Nov-Apr",
+     "desc": "Pristine beaches, coral reefs, scuba diving."},
+
+    {"name": "Manali", "state": "Himachal Pradesh",
+     "category": "hill_station", "cost_per_day": 3000,
+     "season": "Mar-Jun, Dec-Jan",
+     "desc": "Himalayan hill town for snow and adventure sports."},
+
+    {"name": "Ladakh", "state": "Ladakh",
+     "category": "adventure", "cost_per_day": 4500, "season": "May-Sep",
+     "desc": "High-altitude desert, monasteries, Pangong Lake."},
+
+    {"name": "Spiti Valley", "state": "Himachal Pradesh",
+     "category": "adventure", "cost_per_day": 4000, "season": "May-Oct",
+     "desc": "Cold-desert valley for trekking and mountain biking."},
+
+    {"name": "Coorg", "state": "Karnataka",
+     "category": "adventure", "cost_per_day": 3200, "season": "Oct-Mar",
+     "desc": "Coffee-plantation hills, trekking, waterfalls."},
+
+    {"name": "Kerala Backwaters", "state": "Kerala",
+     "category": "nature", "cost_per_day": 4000, "season": "Sep-Mar",
+     "desc": "Houseboat cruises through backwaters and lagoons."},
+
+    {"name": "Ranthambore National Park", "state": "Rajasthan",
+     "category": "wildlife", "cost_per_day": 4800, "season": "Oct-Jun",
+     "desc": "One of India's best parks for spotting wild tigers."}]
+
+def perceive(profile):
+
+    print(f"Tourist Profile: {profile['name']}")
+    print(f"  Interest       : {profile['category']}")
+    print(f"  Trip Duration  : {profile['days']} days")
+    print(f"  Daily Budget   : Rs. {profile['budget_per_day']}")
+    return profile
+
+def reason(profile):
+
+    matches = [
+        d for d in destinations
+        if d["category"] == profile["category"]
+        and d["cost_per_day"] <= profile["budget_per_day"]
+    ]
+
+    if not matches:
+        matches = [
+            d for d in destinations
+            if d["category"] == profile["category"]
+        ]
+
+    matches.sort(key=lambda d: d["cost_per_day"])
+    return matches
+
+def plan(profile, matches):
+
+    if not matches:
+        return [], 0
+
+    days_left = profile["days"]
+    itinerary = []
+    i = 0
+
+    while days_left > 0 and matches:
+        dest = matches[i % len(matches)]
+        days_here = min(3, days_left)
+
+        if itinerary and itinerary[-1]["destination"]["name"] == dest["name"]:
+            itinerary[-1]["days"] += days_here
+        else:
+            itinerary.append({
+                "destination": dest,
+                "days": days_here
+            })
+
+        days_left -= days_here
+        i += 1
+
+    total_cost = sum(
+        item["days"] * item["destination"]["cost_per_day"]
+        for item in itinerary
+    )
+
+    return itinerary, total_cost
+
+def act(itinerary, total_cost, profile):
+
+    if not itinerary:
+        print("Sorry, no destinations match this profile.")
+        return
+
+    print("\nRecommended Itinerary:")
+    day_counter = 1
+
+    for item in itinerary:
+        d = item["destination"]
+        end_day = day_counter + item["days"] - 1
+
+        print(f"Day {day_counter}-{end_day}: {d['name']} ({d['state']})")
+        print(f"             {d['desc']}")
+
+        day_counter = end_day + 1
+
+    print(
+        f"\nTotal Estimated Trip Cost: Rs. {total_cost} "
+        f"for {profile['days']} days"
+    )
+
+def run_agent(profile):
+
+    profile = perceive(profile)
+    matches = reason(profile)
+    itinerary, total_cost = plan(profile, matches)
+    act(itinerary, total_cost, profile)
+
+
+sample_profiles = [
+
+    {
+    
+        "name": "Ananya (Budget Heritage Traveller)",
+        "category": "heritage",
+        "days": 6,
+        "budget_per_day": 3000
+    },
+    
+    {
+    
+        "name": "Rahul (Mid-Budget Adventure Seeker)",
+        "category": "adventure",
+        "days": 5,
+        "budget_per_day": 5000
+        
+    },
+    
+    {
+    
+        "name": "The Fernandes Family (Beach Holiday)",
+        "category": "beach",
+        "days": 7,
+        "budget_per_day": 6000
+    }
+]
+
+
+print("AI Tourist Agent for India")
+
+print("=" * 60)
+
+for idx, profile in enumerate(sample_profiles, start=1):
+
+    print(f"\nTest Session [{idx}]")
+    run_agent(profile)
+    print("-" * 60)
+    
 ### Output
 Agent Output – Session 1 (Budget Heritage Traveller)
 ●	The agent correctly perceives Ananya's preferences, reasons that Taj Mahal and Jaipur are the matching heritage destinations within budget, and plans a 6-day itinerary split evenly between them.
